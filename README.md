@@ -48,7 +48,7 @@ This workflow is computationally expensive, as it involves running the WRAP simu
 ### Reproduce modelling
 The workflow in `II_Machine_Learning/` uses synthetic datasets to develop an LSTM model to predict water shortages across rights using the streamflow conditions across gage sites. The workflow uses the datasets either produced by the previous workflow or those provided in the `repo_data/ml-data/` directory from MSDLive. If you are skipping dataset generation you will need to copy `repo_data/ml-data/synthetic-trainvalid/` and `repo_data/ml-data/synthetic-test/` into the `outputs/` directory.
 
-The `1_optimize_model.py` script is computationally expensive, especially if a GPU is not available, and can be skipped as the final parameters used to train the model used in the paper are saved in `II_Machine_Learning/configs/optimized_params.yaml`.
+The `1_optimize_model.py` script is computationally expensive, especially if a GPU is not available, and can be skipped as the final parameters used to train the model used in the paper are saved in `repo_data/ml-configs/optimized_params.yaml`.
 
 | Script name               | Description                                                                                                                                                        |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
