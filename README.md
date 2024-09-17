@@ -2,6 +2,7 @@
 
 # bonney_et-al_2024_jgrml
 **Emulation of Monthly Water Allocations Using LSTM Models: A Case Study of the Colorado River Basin in Texas**
+
 Kirk Bonney<sup>1\*</sup>, Thushara Gunda<sup>1\*</sup>, Stephen Ferencz<sup>2\*</sup>, and Nicole D. Jackson<sup>1\*</sup>
 
 <sup>1 </sup> Sandia National Laboratories, Albuquerque, NM, USA
