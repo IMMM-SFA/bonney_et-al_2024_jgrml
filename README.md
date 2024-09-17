@@ -1,7 +1,13 @@
 [![DOI](https://zenodo.org/badge/265254045.svg)](https://zenodo.org/doi/10.5281/zenodo.10442485)
 
-# bonney_et-al_2024_JGR_ML
-article info
+# bonney_et-al_2024_jgrml
+**Emulation of Monthly Water Allocations Using LSTM Models: A Case Study of the Colorado River Basin in Texas**
+Kirk Bonney<sup>1\*</sup>, Thushara Gunda<sup>1\*</sup>, Stephen Ferencz<sup>2\*</sup>, and Nicole D. Jackson<sup>1\*</sup>
+
+<sup>1 </sup> Sandia National Laboratories, Albuquerque, NM, USA
+<sup>2 </sup> Pacific Northwest National Laboratory, Richland, WA, USA
+
+\* corresponding author: klbonne@sandia.gov
 
 ## Abstract
 As concerns about water availability increase due to a changing climate and extreme weather, there is a need for computational test beds to help explore water management challenges and elucidate interdependences within coupled human-natural systems. These test beds can range from process-based simulations that take advantage of domain-informed approaches for hydrologic cycling to more data-driven models that leverage the underlying statistical properties of the data. However, development of data-driven models for water availability can be inhibited by lack of access to model source code or data. For example, the Water Rights Analysis Package (WRAP) is used by the state of Texas to assess basin-level water availability, but it is closed source software and currently available data is insufficient for the development of data-driven models. We address these issues within the Colorado River Basin of Texas  by: 1) simulating an ensemble of 1,000 streamflow realizations using Hidden Markov Models; 2) routing these realizations through WRAP to obtain water right-level shortage outputs; and 3) emulate WRAP's water allocation processes by developing a long short-term memory (LSTM) neural network model. The trained LSTM emulates water shortages with high accuracy ($<$10\% error in shortage ratios) across space (1180 water rights) and time (924 months)and is shown to emulate out-of-distribution drought scenarios minimal performance impact. A broad exploratory analysis of error reveals key correlations to temporal dimensions and the sectors of the water rights. This approach demonstrates how machine learning can be used to advance understand and management of complex water management systems under diverse hydrologic conditions.
