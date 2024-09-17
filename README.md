@@ -1,9 +1,9 @@
-[![DOI](https://zenodo.org/badge/265254045.svg)](https://zenodo.org/doi/10.5281/zenodo.10442485)
+[![DOI](https://zenodo.org/badge/265254045.svg)](https://zenodo.org/doi/10.5281/zenodo.10442485) <-- TODO update this
 
 # bonney_et-al_2024_jgrml
 **Emulation of Monthly Water Allocations Using LSTM Models: A Case Study of the Colorado River Basin in Texas**
 
-Kirk Bonney<sup>1\*</sup>, Thushara Gunda<sup>1\</sup>, Stephen Ferencz<sup>2\</sup>, and Nicole D. Jackson<sup>1\</sup>
+Kirk Bonney<sup>1\*</sup>, Thushara Gunda<sup>1</sup>, Stephen Ferencz<sup>2</sup>, and Nicole D. Jackson<sup>1</sup>
 
 <sup>1 </sup> Sandia National Laboratories, Albuquerque, NM, USA
 <sup>2 </sup> Pacific Northwest National Laboratory, Richland, WA, USA
