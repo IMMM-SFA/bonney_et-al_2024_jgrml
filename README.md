@@ -57,7 +57,7 @@ The `1_optimize_model.py` script is computationally expensive, especially if a G
 | 3_generate_predictions.py | This script loads a model at the selected epoch to generate predictions on the test datasets which are then used for evaluation of the model in the next workflow. |
 
 ### Reproduce figures
-The scripts in the `III_Results/` workflow reproduce the figures of the associated paper, given that the previous workflows were followed. The first script roughly corresponds to figures/tables in the methods section, the second to figures in the supplementary materials, the third to elements of the flowchart found in the methods section, and the fourth to the results section. Figures and tables are saved to the `outputs/figures/` directory.
+The scripts in the `III_Results/` workflow reproduce the figures of the associated paper, given that the previous workflows were followed. The first script roughly corresponds to figures/tables in the methods section, the second to figures in the supplementary materials, the third to elements of the flowchart found in the methods section, and the fourth to the results section. Figures and tables are saved to the `outputs/figures/` directory. Training the model from scratch can be skipped by moving the `repo_data/ml-models/run_20240916-123332` folder to `outputs/runs/run_20240916-123332`.
 
 | Script name                    | Description                                                                                                                                                          |
 |--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
