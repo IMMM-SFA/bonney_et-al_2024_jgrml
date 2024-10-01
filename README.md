@@ -18,7 +18,7 @@ As concerns about water availability increase due to a changing climate and extr
 TBD
 
 ## Code reference
-TBD
+Bonney, K., Gunda, T., Ferencz, S., & Jackson, N. (2024). IMMM-SFA/bonney_et-al_2024_jgrml (0.0.1). Zenodo. https://doi.org/10.5281/zenodo.13870503
 
 ## Data reference
 | Dataset                                                                          | Link                                                                                          | DOI              |
