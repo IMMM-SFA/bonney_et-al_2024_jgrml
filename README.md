@@ -18,7 +18,7 @@ As concerns about water scarcity increase due to a changing climate and extreme 
 TBD
 
 ## Code reference
-Bonney, K., Gunda, T., Ferencz, S., & Jackson, N. (2024). IMMM-SFA/bonney_et-al_2024_jgrml (0.0.1). Zenodo. https://doi.org/10.5281/zenodo.13870503
+Bonney, K., Gunda, T., Ferencz, S., & Jackson, N. (2024). Supporting code for Bonney et al. - JGR: Machine Learning and Computation (0.0.1)[Code]. Zenodo. https://doi.org/10.5281/zenodo.13870503
 
 ## Data reference
 | Dataset                                                                          | Link                                                                                          | DOI              |
