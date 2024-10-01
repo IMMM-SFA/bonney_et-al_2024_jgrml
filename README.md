@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/265254045.svg)](https://zenodo.org/doi/10.5281/zenodo.10442485) <-- TODO update this
+[![DOI](https://zenodo.org/badge/745174549.svg)](https://doi.org/10.5281/zenodo.13870503)
+
 
 # bonney_et-al_2024_jgrml
 **Emulation of Monthly Water Allocations Using LSTM Models: A Case Study of the Colorado River Basin in Texas**
