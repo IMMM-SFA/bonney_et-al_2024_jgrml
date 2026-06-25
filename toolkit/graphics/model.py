@@ -10,7 +10,7 @@ import seaborn as sns
 import geopandas as gpd
 from toolkit import repo_data_path
 from toolkit.utils.io import load_crb_shape, load_right_latlongs
-from toolkit.graphics.palette import SECTOR_COLORS
+from toolkit.graphics.palette import SECTOR_COLORS, SECTOR_NAMES
 
 import esda
 import pysal.lib as ps
@@ -390,9 +390,9 @@ def generate_overall_metrics(results_tuple, right_labels):
     # squared_deviation_from_mean[squared_deviation_from_mean < variance_threshold] = 0.0
     nse = 1-(squared_error/squared_deviation_from_mean)
     nse[nse == -np.inf] = np.nan
-    nse[nse < -1] = -1
+    # nse[nse < -1] = -1
     
-    metrics_dict["overall_nse"] = np.nanmean(nse, axis=1)
+    metrics_dict["overall_nse"] = np.nanmedian(nse, axis=1)
     
     # compute volumetric values
     historical_diversions = pd.read_csv(join(repo_data_path, "colorado-full", "C3_diversions.csv"))
@@ -425,23 +425,42 @@ def generate_overall_metrics(results_tuple, right_labels):
     squared_error = np.sum((size_adjusted_true_outputs-size_adjusted_pred_outputs)**2, axis=1)
     squared_deviation_from_mean = np.sum((size_adjusted_true_outputs-np.mean(size_adjusted_true_outputs,keepdims=True,axis=1))**2, axis=1)
     
-    # round low variance time series to 0 for later filtering using nanmean
+    #
     nse = 1-(squared_error/squared_deviation_from_mean)
     nse[nse == -np.inf] = np.nan
     
     # round very low NSE up to -1
-    nse[nse < -1] = -1
+    # nse[nse < -1] = -1
     
-    volumetric_metrics_dict["overall_volumetric_nse"] = np.nanmean(nse, axis=1)
+    volumetric_metrics_dict["overall_volumetric_nse"] = np.nanmedian(nse, axis=1)
     
     return metrics_dict, volumetric_metrics_dict
+
+def troubleshoot_process_streamflow(results_tuple, historical, aggregation=None):
+    inputs, true_outputs, pred_outputs = results_tuple
+    
+    # extract streamflow
+    outflow_index = 42 # index of k20000 gage site
+    # sf_data = inputs.mean(axis=2)
+    sf_data = inputs[:, :, outflow_index].squeeze()
+    sf_data = sf_data.reshape((sf_data.shape[0], -1, 12))
+    # sf_data = sf_data.sum(axis=(1,2))
+    # sf_data = sf_data.reshape((sf_data.shape[0], -1, 12))
+    sf_data =  sf_data - historical
+    sf_data = sf_data.mean(axis=1)
+    month_labels = range(1,13)
+    streamflow_df = pd.DataFrame(columns=month_labels, data=sf_data)
+    streamflow_df = streamflow_df.melt()
+    return streamflow_df
+
 
 def process_streamflow(results_tuple, aggregation=None):
     inputs, true_outputs, pred_outputs = results_tuple
     
     # extract streamflow
     outflow_index = 42 # index of k20000 gage site
-    sf_data = inputs[:, :, outflow_index].squeeze()
+    # sf_data = inputs[:, :, outflow_index].squeeze()
+    sf_data = inputs.mean(axis=2)
     if aggregation=="years":
         sf_data = sf_data.reshape((sf_data.shape[0], -1, 12))
         sf_data = sf_data.mean(axis=1)
@@ -450,6 +469,7 @@ def process_streamflow(results_tuple, aggregation=None):
         sf_data = sf_data.mean(axis=0)
     else:
         sf_data = sf_data.reshape((-1, 12))
+        # sf_data = sf_data.min(axis=)
     
     month_labels = range(1,13)
     streamflow_df = pd.DataFrame(columns=month_labels, data=sf_data)
@@ -503,6 +523,10 @@ def process_errors(
     rights_df["allotment"] = allotment
     rights_df["log_allotment"] = np.log10(rights_df.allotment)
     
+    # Convert WRAP sectors to normal sectors
+    rights_df["sector"] = rights_df["sector"].replace(SECTOR_NAMES)
+    
+    
     # define right allotment categories
     cutoff = 0.9
     rights_df["large_right"] = rights_df.allotment > rights_df.allotment.quantile(cutoff)
@@ -546,8 +570,10 @@ def process_errors(
     squared_deviation_from_mean = np.sum((true_outputs-np.mean(true_outputs,keepdims=True,axis=1))**2, axis=1)
     nse = 1-(squared_error/squared_deviation_from_mean)
     nse[nse == -np.inf] = np.nan
-    nse[nse < -1] = -1 # cutoff at -1 to account for extremely large, negative errors
-    rights_df["nse"] = np.nanmean(nse, axis=0)
+    # nse[nse < -1] = -1 # cutoff at -1 to account for extremely large, negative errors
+    # rights_df["nse"] = np.nanmean(nse, axis=0)
+    rights_df["nse"] = np.nanmedian(nse, axis=0)
+    
     
     # volumetric versions of error metrics
     n_years = true_outputs.shape[1] // 12
@@ -572,8 +598,8 @@ def process_errors(
     squared_deviation_from_mean = np.sum((size_adjusted_true_outputs-np.mean(size_adjusted_true_outputs,keepdims=True,axis=1))**2, axis=1)
     nse = 1-(squared_error/squared_deviation_from_mean)
     nse[nse == -np.inf] = np.nan # process nans
-    nse[nse < -1] = -1 # cutoff again
-    rights_df["volumetric_nse"] = np.nanmean(nse, axis=0)
+    # nse[nse < -1] = -1 # cutoff again
+    rights_df["volumetric_nse"] = np.nanmedian(nse, axis=0)
     
     # variance
     rights_df["variance"] = np.var(true_outputs,axis=1).mean(axis=0)
@@ -589,19 +615,19 @@ def process_errors(
         rights_df["mse"].mean(),
         rights_df["mae"].mean(), 
         rights_df["me"].mean(), 
-        rights_df["nse"].mean()]
+        rights_df["nse"].median()]
     
     overall_df.loc["Large rights ratio",:] = [
         large_rights_df["mse"].mean(),
         large_rights_df["mae"].mean(), 
         large_rights_df["me"].mean(), 
-        large_rights_df["nse"].mean()]
+        large_rights_df["nse"].median()]
     
     overall_df.loc["Small rights ratio",:] = [
         rights_df["mse"].mean(),
         rights_df["mae"].mean(), 
         rights_df["me"].mean(), 
-        rights_df["nse"].mean()]
+        rights_df["nse"].median()]
     
     #volume
     
@@ -609,19 +635,19 @@ def process_errors(
         rights_df["volumetric_mse"].mean(),
         rights_df["volumetric_mae"].mean(), 
         rights_df["volumetric_me"].mean(), 
-        rights_df["volumetric_nse"].mean()]
+        rights_df["volumetric_nse"].median()]
     
     overall_df.loc["Large rights volume",:] = [
         large_rights_df["volumetric_mse"].mean(),
         large_rights_df["volumetric_mae"].mean(), 
         large_rights_df["volumetric_me"].mean(), 
-        large_rights_df["volumetric_nse"].mean()]
+        large_rights_df["volumetric_nse"].median()]
 
     overall_df.loc["Small rights volume",:] = [
         small_rights_df["volumetric_mse"].mean(),
         small_rights_df["volumetric_mae"].mean(), 
         small_rights_df["volumetric_me"].mean(), 
-        small_rights_df["volumetric_nse"].mean()]
+        small_rights_df["volumetric_nse"].median()]
     
     overall_df = overall_df.astype(float)
     overall_df = overall_df.round(3)
@@ -772,17 +798,32 @@ def generate_results(
     ### plots
     ## Geospatial error plots
     metrics = ["volumetric_mse", "volumetric_mae", "volumetric_me", "volumetric_nse", "mse", "mae", "me", "nse"]
-    metric_names = [r"MSE $(\\text{acre-feet}^2)$", "MAE (acre-feet)", "ME (acre-feet)", "NSE",
-                    r"MSE $(\\text{ratio}^2)$", "MAE (ratio)", "ME (ratio)", "NSE"]
+    metric_names = [r'MSE (acre-feet$^2$)', "MAE (acre-feet)", "ME (acre-feet)", "NSE",
+                    r'MSE (ratio$^2$)', "MAE (ratio)", "ME (ratio)", "NSE"]
     # metric_names = ["MSE", "MAE (acre-feet)", "ME (acre-feet)", "NSE",
     #                 "MSE", "MAE (ratio)", "ME (ratio)", "NSE"]
+    
+    # handle NSE outliers
+    shortage_nan_mask = rights_df["nse"].isna()
+    # volume_nan_mask = rights_df["volumetric_nse"].isna()
+    shortage_negative_mask = rights_df["nse"] < -10
+    # volume_negative_mask = rights_df["volumetric_nse"] < -10
+    all_mask = ~(shortage_nan_mask | shortage_negative_mask)
+
+    geospatial_rights_df = rights_df[all_mask]
     for i in range(len(metrics)):
         fig, ax = plt.subplots()
         metric_column = metrics[i]
-        
-        rights_df.plot(ax=ax, column=metric_column, cmap="plasma", markersize=80, alpha=0.75, legend=True, legend_kwds={'label': f"{metric_names[i]}"})
+        if "nse" in metric_column:
+            rights_df[all_mask].plot(ax=ax, column=metric_column, cmap="plasma", markersize=30, vmin=-1, vmax=1, legend=True, legend_kwds={'label': f"{metric_names[i]}"})
+            rights_df[~all_mask].plot(ax=ax, column=metric_column, color="red", edgecolor="black", markersize=30)
+        else:
+            rights_df.plot(ax=ax, column=metric_column, cmap="plasma", markersize=30, legend=True, legend_kwds={'label': f"{metric_names[i]}"})
         crb.plot(ax=ax, zorder=-1, edgecolor="black", linewidth=2, facecolor="none")
         flowline.plot(ax=ax, zorder=-1, edgecolor="grey", alpha=0.5)
+        
+        ax.xaxis.set_ticks_position('none')
+        ax.yaxis.set_ticks_position('none')
         
         fig.tight_layout()
         fig_name  = f"geospatial_{metric_column}.png"
@@ -791,14 +832,14 @@ def generate_results(
     
     ## Monthly volumetric errors with streamflow
     metrics = ["volumetric_mse", "volumetric_mae", "volumetric_me", "mse", "mae", "me"]
-    metric_names = [r"MSE $(\\text{acre-feet}^2)$", "MAE (acre-feet)", "ME (acre-feet)", 
-                    r"MSE $(\\text{ratio}^2)$", "MAE (ratio)", "ME (ratio)"]
+    metric_names = [r'MSE (acre-feet$^2$)', "MAE (acre-feet)", "ME (acre-feet)", 
+                    r'MSE (ratio$^2$)', "MAE (ratio)", "ME (ratio)"]
     
     for i in range(len(metrics)):
         fig, ax = plt.subplots(figsize=(16,7))
         metric_column = metrics[i]
-        error_color = "orange"
-        streamflow_color = "lightblue"
+        error_color = "darkorange"
+        streamflow_color = "blue"
         box_width = 0.2
         
         positions = np.arange(0,12)
@@ -814,10 +855,12 @@ def generate_results(
             showfliers=False,
             color=error_color,
             width=box_width,
-            positions=positions1
+            positions=positions1,
+            medianprops={'color': 'white', 'linewidth': 3},
         )
         ax.yaxis.label.set_color(error_color)
-        ax.set_ylabel(f"{metric_names[i]}")
+        ax.set_ylabel(f"{metric_names[i]}", fontsize=26)
+        ax.set_xlabel(None)
         
         # streamflow
         ax2 = ax.twinx()
@@ -829,12 +872,14 @@ def generate_results(
             showfliers=False,
             color=streamflow_color,
             width=box_width,
-            positions=positions2
+            positions=positions2,
+            medianprops={'color': 'white', 'linewidth': 3},
         )
         
         ax2.yaxis.label.set_color(streamflow_color)
-        ax2.set_ylabel("Streamflow (acre-feet)")
-        ax2.set_xlabel("Month")
+        ax2.set_ylabel("Streamflow (acre-feet)", fontsize=26)
+        # ax2.set_xlabel("Month")
+        ax2.set_xlabel(None)
         ax2.set_xticklabels([mon[:3] for mon in calendar.month_name[1:]], rotation=45, ha='right')
         
         fig.tight_layout()
@@ -845,8 +890,8 @@ def generate_results(
     
     ## Yearly errors
     metrics = ["volumetric_mse", "volumetric_mae", "volumetric_me", "mse", "mae", "me"]
-    metric_names = [r"MSE $(\\text{acre-feet}^2)$", "MAE (acre-feet)", "ME (acre-feet)", 
-                    r"MSE $(\\text{acre-feet}^2)$", "MAE", "ME"]
+    metric_names = [r'MSE (acre-feet$^2$)', "MAE (acre-feet)", "ME (acre-feet)", 
+                    r'MSE (ratio$^2$)', "MAE", "ME"]
     for i in range(len(metrics)):
         fig, ax = plt.subplots(figsize=(16,7))
         metric_column = metrics[i]
@@ -857,7 +902,8 @@ def generate_results(
         line = sns.lineplot(x=year_means.index, y=year_means,marker="o", ax=ax)
         ax.fill_between(year_means.index, year_means - year_stds, year_means + year_stds, alpha=0.3)
         
-        ax.set(xlabel="Year", ylabel=metric_names[i])
+        ax.set_ylabel(metric_names[i], fontsize=36)
+        ax.set_xlabel("Year", fontsize=40)
         
         # ### linear regression
         # start_index = 10
@@ -885,8 +931,8 @@ def generate_results(
     
     ## Sectoral
     metrics = ["volumetric_mse", "volumetric_mae", "volumetric_me", "volumetric_nse", "mse", "mae", "me", "nse"]
-    metric_names = [r"MSE $(\\text{acre-feet}^2)$", "MAE (acre-feet)", "ME (acre-feet)", "NSE",
-                    r"MSE $(\\text{ratio}^2)$", "MAE (ratio)", "ME (ratio)", "NSE"]
+    metric_names = [r'MSE (acre-feet$^2$)', "MAE (acre-feet)", "ME (acre-feet)", "NSE",
+                    r'MSE (ratio$^2$)', "MAE (ratio)", "ME (ratio)", "NSE"]
     
     error_medians = dict()
     for i in range(len(metrics)):
@@ -899,7 +945,8 @@ def generate_results(
             y=metric_column,
             data=rights_df,
             showfliers=False,
-            palette=SECTOR_COLORS
+            palette=SECTOR_COLORS,
+            medianprops={'linewidth': 4}
         )
         
         # extract medians
@@ -914,20 +961,15 @@ def generate_results(
             IQR = Q3 - Q1
             iqrs[sector] = IQR
         
-        ax.set_ylabel(metric_names[i])
-        ax.set_xlabel("Sector")
-        
+        ax.set_ylabel(metric_names[i], fontsize=26)
+        ax.set_xlabel("Sector", fontsize=26)
+        ax.tick_params(axis='x', labelsize=20)
+
         # fig.suptitle("Error across Sectors")
         fig.tight_layout()
         fig_name  = f"sectoral_{metric_column}.png"
         fig.savefig(join(figure_folder, "error_breakdowns", fig_name))
-        ax.set_ylabel(metric_names[i])
-        ax.set_xlabel("Sector")
         
-        # fig.suptitle("Error across Sectors")
-        fig.tight_layout()
-        fig_name  = f"sectoral_{metric_column}.png"
-        fig.savefig(join(figure_folder, "error_breakdowns", fig_name))
         plt.close(fig)
     
     error_medians_df = pd.DataFrame(error_medians)

@@ -54,7 +54,16 @@ class Trainer:
             self.output_dir, 
             "checkpoints",
             f"checkpoint_{checkpoint_id}.pth.tar")
-        self.model.load_state_dict(torch.load(checkpoint_file))
+        
+        # Load checkpoint with appropriate device mapping
+        if torch.cuda.is_available():
+            # CUDA is available, load normally
+            checkpoint = torch.load(checkpoint_file)
+        else:
+            # CUDA not available, map to CPU
+            checkpoint = torch.load(checkpoint_file, map_location=torch.device('cpu'))
+        
+        self.model.load_state_dict(checkpoint)
     
     def save_config(self):
         config_file = os.path.join(
