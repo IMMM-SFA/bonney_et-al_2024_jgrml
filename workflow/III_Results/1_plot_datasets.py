@@ -11,7 +11,7 @@ from toolkit import outputs_data_path
 
 
 ## Settings ##
-aggregation = "years" # sets the axes along which aggregation occurs in later functions
+aggregation = "points" # sets the axes along which aggregation occurs in later functions
 
 # select model run and checkpoint
 run_name = "run_20240916-123332"

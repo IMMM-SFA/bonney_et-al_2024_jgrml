@@ -83,3 +83,47 @@ flowline.plot(ax=ax, zorder=-1, edgecolor="blue", linewidth=0.5)
 ax.set_axis_off()
 fig.tight_layout()
 fig.savefig(join(figure_output_path, "gage_locations.png"))
+
+
+
+# Plot input/output/prediction hydrographs
+
+# input streamflow
+import numpy as np
+synthetic_streamflow = synthetic_streamflow[0]
+historical_streamflow = historical_streamflow[0]
+s_outflow = synthetic_streamflow[:, 42]
+# s_outflow = s_outflow.reshape(-1, 12)
+
+h_outflow = historical_streamflow[:,42]
+# streamflow_array = np.log1p(streamflow_array)
+# outflow = np.log1p(outflow)
+
+
+# hist plots
+fig, ax = plt.subplots()
+ax.hist(h_outflow)
+ax.set_title("historical outlet gage streamflow")
+
+fig, ax = plt.subplots()
+ax.hist(s_outflow)
+ax.set_title("synthetic outlet gage streamflow")
+
+fig, ax = plt.subplots()
+ax.hist(historical_streamflow.flatten())
+ax.set_title("historical all gage streamflow")
+
+fig, ax = plt.subplots()
+ax.hist(synthetic_streamflow.flatten())
+ax.set_title("synthetic all gage streamflow")
+# fig, ax = plt.subplots()
+# ims = []
+# # ims.append(ax.imshow(outflow.T))
+# ims.append(ax.imshow(streamflow_array))
+# # axis
+# ax.set_xlabel("Gage site")
+# ax.set_ylabel("Month")
+# ax.set_title("Input Streamflow")
+# fig.colorbar(ims[0])
+
+

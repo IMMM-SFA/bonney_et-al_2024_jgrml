@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from toolkit.utils.io import hdf5_to_dict
 from toolkit.emulator.dataset import WrapDataset
 from toolkit.utils.io import load_right_latlongs
-from toolkit.graphics.palette import SECTOR_COLORS
+from toolkit.graphics.palette import SECTOR_COLORS, SECTOR_NAMES
 from toolkit import repo_data_path, outputs_data_path
 
 
@@ -79,6 +79,9 @@ monthly_right_allotment = right_allotments.iloc[0:12]
 # compute log of right size
 df["log_allotment"] = np.log10(df.allotment)
 
+# Replaace WRAP sectors with normal names
+df["sector"] = df["sector"].replace(SECTOR_NAMES)
+
 # load use patterns
 use_pattern_path = join(repo_data_path, "misc_data", "wrap_monthly_demand_curves.csv")
 use_patterns_df = pd.read_csv(use_pattern_path)
@@ -95,14 +98,16 @@ for i, pattern_row in use_patterns_df.iterrows():
     if "IRR" in sector:
         sector = "IRR"
     data = pattern_row[1:13]
+    sector_name = SECTOR_NAMES[sector]
     if sector == "MIN":
-        ax.plot(data, color=SECTOR_COLORS[sector], linewidth=5, label=sector, linestyle="dashed", zorder=5)
+        ax.plot(data, color=SECTOR_COLORS[sector_name], linewidth=5, label=sector_name, linestyle="dashed", zorder=5)
     else:
-        ax.plot(data, color=SECTOR_COLORS[sector], linewidth=5, label=sector)
+        ax.plot(data, color=SECTOR_COLORS[sector_name], linewidth=5, label=sector_name)
     
 ax.set_xticks(range(0,12))
 ax.set_xticklabels([mon[:3] for mon in calendar.month_name[1:]], rotation=45, ha='right')
 ax.set_ylabel("Monthly Proportion of Total Allotment")  
+# ax.set_ylabel("Monthly Proportion of Total Allotment")  
 
 lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
 lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -120,6 +125,7 @@ plt.close(fig)
 
 # Plot water right location by sector
 for sector in SECTOR_COLORS.keys():
+    # sector_name = SECTOR_NAMES[sector]
     fig, ax = plt.subplots()
     df[df.sector == sector].plot(ax=ax, color=SECTOR_COLORS[sector], markersize=80, label=sector)
     crb.plot(ax=ax, zorder=-1, edgecolor="black", facecolor="none")
@@ -133,6 +139,7 @@ for sector in SECTOR_COLORS.keys():
 
 # Plot water right seniority histograms
 for sector in SECTOR_COLORS.keys():
+    # sector_name = SECTOR_NAMES[sector]
     fig, ax = plt.subplots()
     sns.histplot(data=df,ax=ax, x="seniority", hue="sector", hue_order=[sector], alpha=1, palette=SECTOR_COLORS)
     ax.get_legend().remove()
